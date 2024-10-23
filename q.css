@@ -117,21 +117,4 @@ h1 {
     }
 }
 
- .play-button {
-        width: 150px; /* 根据需要调整宽度 */
-        white-space: normal; /* 允许换行 */
-    }
- .play-button {
-        background-color: #000000; /* 背景色 */
-        color: white;              /* 文字颜色 */
-        padding: 15px 20px;        /* 内边距 */
-        font-size: 16px;           /* 字体大小 */
-        border: none;              /* 无边框 */
-        border-radius: 8px;        /* 圆角边框 */
-        text-align: center;        /* 文字居中 */
-        white-space: normal;       /* 允许换行 */
-    }
 
-    .play-button:hover {
-        background-color: #45a049; /* 鼠标悬停时的背景色 */
-    }

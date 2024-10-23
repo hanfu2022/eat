@@ -45,18 +45,41 @@ h1 {
     align-items: center;
     justify-content: center;
     margin-bottom: 20px;
+    padding: 20px;
+    background: linear-gradient(135deg, #00B4DB, #0083B0); /* 渐变背景 */
+    border-radius: 12px; /* 圆角 */
+    box-shadow: 0px 4px 15px rgba(0, 0, 0, 0.2); /* 阴影 */
+    transition: transform 0.3s ease;
+}
+
+.player-container:hover {
+    transform: scale(1.02); /* 鼠标悬停时微缩放效果 */
 }
 
 /* 频道选择下拉菜单的样式 */
 .channel-select {
-    padding: 10px;
-    font-size: 1em;
-    border-radius: 8px;
-    border: 1px solid #ccc;
-    background-color: #fff;
-    margin-right: 10px;
-    width: 250px;
+    padding: 12px;
+    font-size: 1.1em;
+    border-radius: 10px;
+    border: none; /* 去掉边框 */
+    background: linear-gradient(135deg, #ff6a00, #ee0979); /* 渐变背景 */
+    color: white;
+    margin-right: 15px;
+    width: 260px;
+    box-shadow: 0px 3px 10px rgba(0, 0, 0, 0.15); /* 添加阴影 */
     transition: all 0.3s ease;
+    cursor: pointer; /* 鼠标变为手型 */
+}
+
+.channel-select:hover {
+    background: linear-gradient(135deg, #ff9500, #d8006b); /* 悬停时改变背景渐变 */
+    box-shadow: 0px 6px 20px rgba(0, 0, 0, 0.25); /* 加强阴影效果 */
+    transform: translateY(-2px); /* 悬停时的浮动效果 */
+}
+
+.channel-select:focus {
+    outline: none; /* 去除点击后的边框 */
+    box-shadow: 0px 0px 0px 3px rgba(255, 106, 0, 0.5); /* 点击后添加高亮边框 */
 }
 
 /* 当频道选择框聚焦时的样式 */

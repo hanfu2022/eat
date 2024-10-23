@@ -114,3 +114,8 @@ h1 {
         max-width: 100%;  /* 在小屏设备上确保播放器占满屏幕 */
     }
 }
+
+ .play-button {
+        width: 150px; /* 根据需要调整宽度 */
+        white-space: normal; /* 允许换行 */
+    }

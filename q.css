@@ -47,13 +47,15 @@ h1 {
     margin-bottom: 20px;
     padding: 20px;
     background: linear-gradient(135deg, #00B4DB, #0083B0); /* 渐变背景 */
-    border-radius: 12px; /* 圆角 */
+    border-radius: 12px;
     box-shadow: 0px 4px 15px rgba(0, 0, 0, 0.2); /* 阴影 */
     transition: transform 0.3s ease;
+    width: 100%; /* 确保在移动端占满宽度 */
+    max-width: 500px; /* 控制最大宽度，避免太宽 */
 }
 
 .player-container:hover {
-    transform: scale(1.02); /* 鼠标悬停时微缩放效果 */
+    transform: scale(1.02);
 }
 
 /* 频道选择下拉菜单的样式 */
@@ -61,25 +63,29 @@ h1 {
     padding: 12px;
     font-size: 1.1em;
     border-radius: 10px;
-    border: none; /* 去掉边框 */
+    border: none;
     background: linear-gradient(135deg, #ff6a00, #ee0979); /* 渐变背景 */
-    color: #333; /* 改为深色文字 */
+    color: #333; /* 深色文字 */
     margin-right: 15px;
-    width: 260px;
-    box-shadow: 0px 3px 10px rgba(0, 0, 0, 0.15); /* 添加阴影 */
+    width: 100%; /* 让选择框在移动设备上占满宽度 */
+    max-width: 300px; /* 控制最大宽度 */
+    box-shadow: 0px 3px 10px rgba(0, 0, 0, 0.15);
     transition: all 0.3s ease;
-    cursor: pointer; /* 鼠标变为手型 */
+    cursor: pointer;
 }
 
-.channel-select:hover {
-    background: linear-gradient(135deg, #ff9500, #d8006b); /* 悬停时改变背景渐变 */
-    box-shadow: 0px 6px 20px rgba(0, 0, 0, 0.25); /* 加强阴影效果 */
-    transform: translateY(-2px); /* 悬停时的浮动效果 */
-}
+/* 移动端优化 */
+@media (max-width: 768px) {
+    .player-container {
+        flex-direction: column; /* 在手机上纵向排列 */
+        padding: 10px; /* 减小内边距 */
+    }
 
-.channel-select:focus {
-    outline: none; /* 去除点击后的边框 */
-    box-shadow: 0px 0px 0px 3px rgba(255, 106, 0, 0.5); /* 点击后添加高亮边框 */
+    .channel-select {
+        margin-right: 0; /* 移除右边距，防止溢出 */
+        margin-bottom: 10px; /* 增加底部间距 */
+        width: 100%; /* 下拉菜单在手机上全宽 */
+    }
 }
 
 

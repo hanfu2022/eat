@@ -117,4 +117,6 @@ h1 {
     }
 }
 
-
+.play-button {
+        white-space: normal; /* 允许换行 */
+    }

@@ -112,5 +112,10 @@ ul {
 }
 
  #content {
-            display: none; /* 隐藏内容，直到激活码验证通过 */
+            display: none;
         }
+
+ .play-button {
+        width: 150px; /* 根据需要调整宽度 */
+        white-space: normal; /* 允许换行 */
+    }

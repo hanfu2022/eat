@@ -5,7 +5,7 @@ document.addEventListener("DOMContentLoaded", function() {
     let channelList = [];
 
     // Load the channel list from the channels.txt file
-    const channelsTxtUrl = 's.txt';
+    const channelsTxtUrl = 'ss.txt';
 
 fetch(channelsTxtUrl) 
         .then(response => response.text())

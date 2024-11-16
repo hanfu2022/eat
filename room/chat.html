@@ -5,18 +5,24 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Anonymous Chat - Chat Room</title>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/crypto-js/4.1.1/crypto-js.min.js"></script>
+<link rel="stylesheet" href="chat-styles.css">
 </head>
 <body>
+<!-- The structure for displaying chat -->
+<div id="chatWith"></div>
+<div id="messages"></div>
+<input id="messageInput" type="text">
+<button id="sendMessage">Send Message</button>
+
     <div class="container">
         <h1>Chat with your friend</h1>
-
-        <!-- 显示聊天信息 -->
-        <div id="messages"></div>
-
-        <!-- 输入框和发送按钮 -->
-        <textarea id="messageInput" placeholder="Type your message"></textarea>
-        <button id="sendMessage">Send Message</button>
-
+<div class="chat-container">
+        <div class="messages" id="messages"></div>
+        <div class="input-area">
+            <input type="text" id="messageInput" placeholder="输入消息...">
+            <button onclick="sendMessage()">发送</button>
+        </div>
+<div class="input-area">
         <!-- 返回主页按钮 -->
         <button onclick="window.location.href = 'index.html';">Back to Home</button>
     </div>

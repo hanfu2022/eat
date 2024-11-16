@@ -41,3 +41,15 @@ if (generateLinkButton) {
         alert('Share this link with your friend to start chatting!');
     });
 }
+
+// JavaScript 代码（放在 `script.js` 中）
+const generateLinkButton = document.getElementById('generateLink');
+const shareLinkInput = document.getElementById('shareLink');
+
+generateLinkButton.addEventListener('click', () => {
+    const userId = localStorage.getItem('anonymousId');
+    const shareLink = `${window.location.origin}/chat.html?friendId=${userId}`;
+    shareLinkInput.value = shareLink;
+    shareLinkInput.style.display = 'block'; // 显示生成的链接
+    alert('Share this link to start chatting!');
+});

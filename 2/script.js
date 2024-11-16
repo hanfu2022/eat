@@ -29,25 +29,16 @@ if (startChatButton) {
     });
 }
 
-
-
-if (generateLinkButton) {
-    generateLinkButton.addEventListener('click', () => {
-        const shareLink = `${window.location.origin}/chat.html?userId=${anonymousId}&friendId=${anonymousId}`;
-        shareLinkInput.value = shareLink;
-        shareLinkInput.style.display = 'block';
-        alert('Share this link with your friend to start chatting!');
-    });
-}
-
-// JavaScript 代码（放在 `script.js` 中）
+// Handle the generation of the shareable link (on index.html)
 const generateLinkButton = document.getElementById('generateLink');
 const shareLinkInput = document.getElementById('shareLink');
 
-generateLinkButton.addEventListener('click', () => {
-    const userId = localStorage.getItem('anonymousId');
-    const shareLink = `${window.location.origin}/chat.html?friendId=${userId}`;
-    shareLinkInput.value = shareLink;
-    shareLinkInput.style.display = 'block'; // 显示生成的链接
-    alert('Share this link to start chatting!');
-});
+// Ensure the button and input field exist before adding event listeners
+if (generateLinkButton && shareLinkInput) {
+    generateLinkButton.addEventListener('click', () => {
+        const shareLink = `${window.location.origin}/chat.html?userId=${anonymousId}&friendId=${anonymousId}`;
+        shareLinkInput.value = shareLink;
+        shareLinkInput.style.display = 'block'; // 显示生成的链接
+        alert('Share this link with your friend to start chatting!');
+    });
+}

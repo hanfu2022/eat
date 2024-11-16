@@ -26,11 +26,11 @@
     <script>
       
 
-        // 获取留言
+     // 获取留言
 async function loadMessages() {
     try {
         const response = await fetch('https://onlinechat.hanfu2022.workers.dev/messages', {
-            method: 'GET',
+            method: 'GET', 
             headers: {
                 'Content-Type': 'application/json',
             },
@@ -47,12 +47,11 @@ async function loadMessages() {
         console.error('Error loading messages:', error);
     }
 }
-
 // 发布留言
 async function postMessage(message) {
     try {
         const response = await fetch('https://onlinechat.hanfu2022.workers.dev/messages', {
-            method: 'POST',
+            method: 'POST', 
             headers: {
                 'Content-Type': 'application/json',
             },

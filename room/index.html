@@ -25,31 +25,6 @@
         <button id="generateLink">Generate Share Link</button>
         <input type="text" id="shareLink" placeholder="Your shareable link" readonly style="display: none;">
     </div>
-// Generate a random room ID
-function generateRoomId() {
-    return Math.random().toString(36).substring(2, 10);
-}
-
-// Get anonymous ID from local storage or generate a new one
-const anonymousId = localStorage.getItem('anonymousId') || Math.random().toString(36).substring(2, 10);
-localStorage.setItem('anonymousId', anonymousId);
-
-// Set user ID in the input field (on index.html)
-const userIdInput = document.getElementById('userId');
-if (userIdInput) userIdInput.value = anonymousId;
-
-const generateLinkButton = document.getElementById('generateLink');
-const shareLinkInput = document.getElementById('shareLink');
-
-if (generateLinkButton) {
-    generateLinkButton.addEventListener('click', () => {
-        const roomId = generateRoomId(); // Generate a unique room ID
-        const shareLink = `${window.location.origin}/chat.html?userId=${anonymousId}&roomId=${roomId}`;
-        shareLinkInput.value = shareLink;
-        shareLinkInput.style.display = 'block'; // Show the generated link
-        alert('Share this link to start chatting!');
-    });
-}
 
     <!-- 引入 CryptoJS 用于加密 -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/crypto-js/4.1.1/crypto-js.min.js"></script>

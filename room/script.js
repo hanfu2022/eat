@@ -42,3 +42,21 @@ if (generateLinkButton && shareLinkInput) {
         alert('Share this link with your friend to start chatting!');
     });
 }
+
+// Generate a random room ID
+function generateRoomId() {
+    return Math.random().toString(36).substring(2, 10);
+}
+
+const generateLinkButton = document.getElementById('generateLink');
+const shareLinkInput = document.getElementById('shareLink');
+
+if (generateLinkButton) {
+    generateLinkButton.addEventListener('click', () => {
+        const roomId = generateRoomId(); // Generate a unique room ID
+        const shareLink = `${window.location.origin}/chat.html?userId=${anonymousId}&roomId=${roomId}`;
+        shareLinkInput.value = shareLink;
+        shareLinkInput.style.display = 'block'; // Show the generated link
+        alert('Share this link to start chatting!');
+    });
+}

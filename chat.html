@@ -1,0 +1,76 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Anonymous Guestbook</title>
+    <style>
+        body { font-family: Arial, sans-serif; padding: 20px; }
+        .messages { margin-top: 20px; }
+        .message { border-bottom: 1px solid #ccc; padding: 10px 0; }
+    </style>
+</head>
+<body>
+    <h1>Anonymous Guestbook</h1>
+    <form id="message-form">
+        <textarea id="message-input" rows="4" cols="50" placeholder="Leave a message..." required></textarea>
+        <br>
+        <button type="submit">Post Message</button>
+    </form>
+
+    <div class="messages" id="messages-list">
+        <h2>Messages:</h2>
+        <p>Loading messages...</p>
+    </div>
+
+    <script>
+      
+
+     // 获取留言
+async function loadMessages() {
+    try {
+        const response = await fetch('https://onlinechat.hanfu2022.workers.dev/messages', {
+            method: 'GET', 
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            mode: 'cors' // 确保启用 CORS
+        });
+
+        if (!response.ok) {
+            throw new Error('Failed to fetch messages');
+        }
+
+        const messages = await response.json();
+        displayMessages(messages);
+    } catch (error) {
+        console.error('Error loading messages:', error);
+    }
+}
+// 发布留言
+async function postMessage(message) {
+    try {
+        const response = await fetch('https://onlinechat.hanfu2022.workers.dev/messages', {
+            method: 'POST', 
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({ message: message }),
+            mode: 'cors' // 确保启用 CORS
+        });
+
+        if (!response.ok) {
+            throw new Error('Failed to post message');
+        }
+
+        loadMessages(); // 刷新留言列表
+    } catch (error) {
+        console.error('Error posting message:', error);
+    }
+}
+
+
+        
+    </script>
+</body>
+</html>

@@ -36,24 +36,7 @@ const shareLinkInput = document.getElementById('shareLink');
 // Ensure the button and input field exist before adding event listeners
 if (generateLinkButton && shareLinkInput) {
     generateLinkButton.addEventListener('click', () => {
-        const shareLink = `${window.location.origin}/chat.html?userId=${anonymousId}&friendId=${anonymousId}`;
-        shareLinkInput.value = shareLink;
-        shareLinkInput.style.display = 'block'; // 显示生成的链接
-        alert('Share this link with your friend to start chatting!');
-    });
-}
-
-// Generate a random room ID
-function generateRoomId() {
-    return Math.random().toString(36).substring(2, 10);
-}
-
-const generateLinkButton = document.getElementById('generateLink');
-const shareLinkInput = document.getElementById('shareLink');
-
-if (generateLinkButton) {
-    generateLinkButton.addEventListener('click', () => {
-        const roomId = generateRoomId(); // Generate a unique room ID
+        const roomId = Math.random().toString(36).substring(2, 10); // Generate a unique room ID
         const shareLink = `${window.location.origin}/chat.html?userId=${anonymousId}&roomId=${roomId}`;
         shareLinkInput.value = shareLink;
         shareLinkInput.style.display = 'block'; // Show the generated link

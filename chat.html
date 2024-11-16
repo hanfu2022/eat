@@ -1,0 +1,73 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Anonymous Guestbook</title>
+    <style>
+        body { font-family: Arial, sans-serif; padding: 20px; }
+        .messages { margin-top: 20px; }
+        .message { border-bottom: 1px solid #ccc; padding: 10px 0; }
+    </style>
+</head>
+<body>
+    <h1>Anonymous Guestbook</h1>
+    <form id="message-form">
+        <textarea id="message-input" rows="4" cols="50" placeholder="Leave a message..." required></textarea>
+        <br>
+        <button type="submit">Post Message</button>
+    </form>
+
+    <div class="messages" id="messages-list">
+        <h2>Messages:</h2>
+        <p>Loading messages...</p>
+    </div>
+
+    <script>
+        const API_URL = 'https://onlinechat.hanfu2022.workers.dev/messages';
+
+        // 加载所有留言
+        async function loadMessages() {
+            const response = await fetch(API_URL);
+            const messages = await response.json();
+            const messagesList = document.getElementById('messages-list');
+            messagesList.innerHTML = '<h2>Messages:</h2>';
+            if (messages.length === 0) {
+                messagesList.innerHTML += '<p>No messages yet!</p>';
+            } else {
+                messages.forEach(message => {
+                    const messageDiv = document.createElement('div');
+                    messageDiv.classList.add('message');
+                    messageDiv.textContent = message.content;
+                    messagesList.appendChild(messageDiv);
+                });
+            }
+        }
+
+        // 提交留言
+        document.getElementById('message-form').addEventListener('submit', async (event) => {
+            event.preventDefault();
+            const messageInput = document.getElementById('message-input');
+            const message = messageInput.value;
+
+            if (message) {
+                const response = await fetch(API_URL, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ message })
+                });
+
+                if (response.ok) {
+                    messageInput.value = ''; // 清空输入框
+                    loadMessages(); // 重新加载留言
+                } else {
+                    alert('Failed to post message');
+                }
+            }
+        });
+
+        // 页面加载时显示留言
+        loadMessages();
+    </script>
+</body>
+</html>

@@ -29,9 +29,7 @@ if (startChatButton) {
     });
 }
 
-// Generate shareable link (on index.html)
-const generateLinkButton = document.getElementById('generateLink');
-const shareLinkInput = document.getElementById('shareLink');
+
 
 if (generateLinkButton) {
     generateLinkButton.addEventListener('click', () => {

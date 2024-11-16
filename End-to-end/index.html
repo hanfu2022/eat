@@ -7,23 +7,28 @@
     <link rel="stylesheet" href="styles.css">
 </head>
 <body>
-
     <div class="container">
         <h1>Welcome to Anonymous Chat</h1>
+
+        <!-- 显示自动生成的用户ID -->
         <label for="userId">Your ID:</label>
         <input type="text" id="userId" placeholder="Auto-generated ID" readonly>
 
+        <!-- 输入好友的ID -->
         <label for="friendId">Friend's ID:</label>
         <input type="text" id="friendId" placeholder="Enter Friend's ID">
 
+        <!-- 按钮发起聊天 -->
         <button id="startChat">Start Chat</button>
 
-
+        <!-- 生成分享链接 -->
+        <button id="generateLink">Generate Share Link</button>
+        <input type="text" id="shareLink" placeholder="Your shareable link" readonly style="display: none;">
     </div>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/crypto-js/4.1.1/crypto-js.min.js"></script>
 
+    <!-- 引入 CryptoJS 用于加密 -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/crypto-js/4.1.1/crypto-js.min.js"></script>
+    <!-- 引入主逻辑脚本 -->
     <script src="script.js"></script>
-
-
 </body>
 </html>

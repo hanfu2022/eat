@@ -3,22 +3,27 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Chat Room</title>
+    <title>Anonymous Chat - Chat Room</title>
     <link rel="stylesheet" href="styles.css">
 </head>
 <body>
-    <div class="chat-container">
-        <div id="messages" class="messages">
-            <!-- Chat messages will appear here -->
-        </div>
+    <div class="container">
+        <h1>Chat with your friend</h1>
 
-        <div class="message-box">
-            <input type="text" id="messageInput" placeholder="Type your message...">
-            <button id="sendMessage">Send</button>
-        </div>
+        <!-- 显示聊天信息 -->
+        <div id="messages"></div>
+
+        <!-- 输入框和发送按钮 -->
+        <textarea id="messageInput" placeholder="Type your message"></textarea>
+        <button id="sendMessage">Send Message</button>
+
+        <!-- 返回主页按钮 -->
+        <button onclick="window.location.href = 'index.html';">Back to Home</button>
     </div>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/crypto-js/4.1.1/crypto-js.min.js"></script>
 
-    <script src="script.js"></script>
+    <!-- 引入 CryptoJS 用于加密 -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/crypto-js/4.1.1/crypto-js.min.js"></script>
+    <!-- 引入聊天逻辑脚本 -->
+    <script src="chat.js"></script>
 </body>
 </html>

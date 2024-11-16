@@ -1,21 +1,20 @@
 document.addEventListener('DOMContentLoaded', function () {
-    // 获取 URL 参数中的 userId 和 roomId
+    // 获取 URL 参数中的 userId 和 friendId
     const urlParams = new URLSearchParams(window.location.search);
     const userId = urlParams.get('userId');
-    const roomId = urlParams.get('roomId');  // 注意：替换为 roomId
+    const friendId = urlParams.get('friendId');
 
-    // 检查 userId 和 roomId 是否有效
-    console.log(userId, roomId);  // 调试用
+    // 检查 friendId 和 userId 是否有效
+    console.log(userId, friendId);  // 调试用
 
-    // 获取 DOM 元素
-    const chatWithElement = document.getElementById('chatWith');  // 获取 chatWith 元素
-
+    // 确保 chatWith 元素存在
+    const chatWithElement = document.getElementById('chatWith');
     if (chatWithElement) {
         // 显示聊天对象
-        if (roomId) {
-            chatWithElement.innerText = `Chat in room: ${roomId}`;  // 显示房间 ID
+        if (friendId) {
+            chatWithElement.innerText = `Chat with: ${friendId}`;
         } else {
-            chatWithElement.innerText = "No valid room selected";
+            chatWithElement.innerText = "No valid friend selected";
         }
     } else {
         console.error('Element with id "chatWith" not found');
@@ -29,7 +28,7 @@ document.addEventListener('DOMContentLoaded', function () {
     // 获取消息并解密显示
     async function fetchMessages() {
         try {
-            const response = await fetch(`https://onlinechat.hanfu2022.workers.dev/getMessages?userId=${userId}&roomId=${roomId}`);  // 使用 roomId 而不是 friendId
+            const response = await fetch(`https://onlinechat.hanfu2022.workers.dev/getMessages?userId=${userId}&friendId=${friendId}`);
             if (!response.ok) {
                 throw new Error('Failed to fetch messages');
             }
@@ -60,7 +59,7 @@ document.addEventListener('DOMContentLoaded', function () {
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({
                         senderId: userId,
-                        roomId: roomId,  // 使用 roomId 而不是 friendId
+                        recipientId: friendId,
                         encryptedMessage: encryptedMessage
                     })
                 });

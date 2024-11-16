@@ -1,0 +1,59 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Anonymous Chat</title>
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+    <div class="container">
+        <h1>Welcome to Anonymous Chat</h1>
+
+        <!-- 显示自动生成的用户ID -->
+        <label for="userId">Your ID:</label>
+        <input type="text" id="userId" placeholder="Auto-generated ID" readonly>
+
+        <!-- 输入好友的ID -->
+        <label for="friendId">Friend's ID:</label>
+        <input type="text" id="friendId" placeholder="Enter Friend's ID">
+
+        <!-- 按钮发起聊天 -->
+        <button id="startChat">Start Chat</button>
+
+        <!-- 生成分享链接 -->
+        <button id="generateLink">Generate Share Link</button>
+        <input type="text" id="shareLink" placeholder="Your shareable link" readonly style="display: none;">
+    </div>
+// Generate a random room ID
+function generateRoomId() {
+    return Math.random().toString(36).substring(2, 10);
+}
+
+// Get anonymous ID from local storage or generate a new one
+const anonymousId = localStorage.getItem('anonymousId') || Math.random().toString(36).substring(2, 10);
+localStorage.setItem('anonymousId', anonymousId);
+
+// Set user ID in the input field (on index.html)
+const userIdInput = document.getElementById('userId');
+if (userIdInput) userIdInput.value = anonymousId;
+
+const generateLinkButton = document.getElementById('generateLink');
+const shareLinkInput = document.getElementById('shareLink');
+
+if (generateLinkButton) {
+    generateLinkButton.addEventListener('click', () => {
+        const roomId = generateRoomId(); // Generate a unique room ID
+        const shareLink = `${window.location.origin}/chat.html?userId=${anonymousId}&roomId=${roomId}`;
+        shareLinkInput.value = shareLink;
+        shareLinkInput.style.display = 'block'; // Show the generated link
+        alert('Share this link to start chatting!');
+    });
+}
+
+    <!-- 引入 CryptoJS 用于加密 -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/crypto-js/4.1.1/crypto-js.min.js"></script>
+    <!-- 引入主逻辑脚本 -->
+    <script src="script.js"></script>
+</body>
+</html>

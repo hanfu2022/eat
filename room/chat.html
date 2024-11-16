@@ -1,0 +1,88 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Anonymous Chat - Chat Room</title>
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+    <div class="container">
+        <h1>Chat with your friend</h1>
+
+        <!-- 显示聊天信息 -->
+        <div id="messages"></div>
+
+        <!-- 输入框和发送按钮 -->
+        <textarea id="messageInput" placeholder="Type your message"></textarea>
+        <button id="sendMessage">Send Message</button>
+
+        <!-- 返回主页按钮 -->
+        <button onclick="window.location.href = 'index.html';">Back to Home</button>
+    </div>
+
+    <!-- 引入 CryptoJS 用于加密 -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/crypto-js/4.1.1/crypto-js.min.js"></script>
+    <!-- 引入聊天逻辑脚本 -->
+    <script src="chat.js"></script>
+// Chat functionality (on chat.html)
+const sendMessageButton = document.getElementById('sendMessage');
+const messagesDiv = document.getElementById('messages');
+const messageInput = document.getElementById('messageInput');
+
+// Get roomId and userId from URL
+const urlParams = new URLSearchParams(window.location.search);
+const userId = urlParams.get('userId');  // Your user ID
+const roomId = urlParams.get('roomId');  // Room ID for the chat
+
+// Show user ID in the chat input
+if (document.getElementById('userIdInput')) {
+    document.getElementById('userIdInput').value = userId;
+}
+
+// Handle sending messages
+sendMessageButton.addEventListener('click', async () => {
+    const message = messageInput.value.trim();
+    if (message) {
+        await fetch(`${WORKER_URL}/sendMessage`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+                senderId: userId,
+                roomId: roomId,
+                encryptedMessage: encryptMessage(message),
+            })
+        });
+        messageInput.value = '';
+    }
+});
+
+// Fetch messages for the room
+async function fetchMessages() {
+    const response = await fetch(`${WORKER_URL}/getMessages?roomId=${roomId}`);
+    const data = await response.json();
+    messagesDiv.innerHTML = ''; // Clear existing messages
+    data.messages.forEach(({ senderId, encryptedMessage }) => {
+        const decryptedMessage = decryptMessage(encryptedMessage);
+        const messageElement = document.createElement('div');
+        messageElement.textContent = `${senderId}: ${decryptedMessage}`;
+        messagesDiv.appendChild(messageElement);
+    });
+}
+
+// Periodically fetch new messages
+setInterval(fetchMessages, 3000);
+
+// Encryption and Decryption (same as previous code)
+const encryptionKey = "shared-secret-key"; // Example key for encryption
+function encryptMessage(message) {
+    return CryptoJS.AES.encrypt(message, encryptionKey).toString();
+}
+
+function decryptMessage(encryptedMessage) {
+    const bytes = CryptoJS.AES.decrypt(encryptedMessage, encryptionKey);
+    return bytes.toString(CryptoJS.enc.Utf8);
+}
+
+</body>
+</html>

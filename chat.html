@@ -62,6 +62,23 @@
     </div>
 
     <script>
+        // 获取URL中的session参数
+        function getSessionID() {
+            const urlParams = new URLSearchParams(window.location.search);
+            let sessionID = urlParams.get('session');
+            if (!sessionID) {
+                sessionID = Math.random().toString(36).substring(2, 15);  // 没有session时，生成新sessionID
+                // 更新URL，传递新的sessionID
+                const newURL = window.location.href.split('?')[0] + '?session=' + sessionID;
+                window.history.pushState({}, '', newURL);
+            }
+            return sessionID;
+        }
+
+        // 获取当前会话ID
+        const sessionID = getSessionID();
+        console.log('Current Session ID:', sessionID);
+
         // 加密消息
         function encryptMessage(message) {
             const encoder = new TextEncoder();

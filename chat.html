@@ -3,119 +3,105 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Encrypted Chat</title>
+    <title>End-to-End Encrypted Chat</title>
     <style>
         body {
             font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 0;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            background-color: #f4f4f4;
         }
-        #chat-box {
+        .chat-container {
+            width: 500px;
+            background-color: white;
+            border-radius: 8px;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+            overflow: hidden;
+            display: flex;
+            flex-direction: column;
+            height: 80vh;
+        }
+        #chatBox {
+            flex-grow: 1;
+            padding: 15px;
+            overflow-y: auto;
+            border-bottom: 1px solid #ccc;
+            font-size: 16px;
+            height: 100%;
+        }
+        input[type="text"] {
+            padding: 10px;
+            border: 1px solid #ccc;
             width: 100%;
-            height: 300px;
-            overflow-y: scroll;
-            border: 1px solid #ccc;
-            padding: 10px;
-        }
-        #input-box {
-            width: calc(100% - 100px);
-            padding: 10px;
-            border: 1px solid #ccc;
+            border-radius: 4px;
         }
         button {
-            padding: 10px;
-            background-color: #4CAF50;
+            padding: 10px 15px;
+            background-color: #007bff;
             color: white;
             border: none;
             cursor: pointer;
+            border-radius: 4px;
+            margin-top: 10px;
+        }
+        button:hover {
+            background-color: #0056b3;
         }
     </style>
 </head>
 <body>
-    <h1>Encrypted Chat</h1>
-    <div id="chat-box"></div>
-    <textarea id="input-box" placeholder="Type your message..."></textarea><br>
-    <button id="send-btn">Send</button>
+    <div class="chat-container">
+        <h2 style="padding: 15px; margin: 0; background-color: #007bff; color: white; text-align: center;">End-to-End Encrypted Chat</h2>
+        <div id="chatBox"></div>
+        <input type="text" id="messageInput" placeholder="Enter message" />
+        <button onclick="sendMessage()">Send</button>
+    </div>
 
     <script>
-        let sessionId;
-
-        // Function to generate a new sessionId or get it from URL
-        async function getSessionId() {
-            const urlParams = new URLSearchParams(window.location.search);
-            sessionId = urlParams.get('session');
-            if (!sessionId) {
-                sessionId = await generateSessionId();
-                window.history.replaceState({}, '', `?session=${sessionId}`);
-            }
-            return sessionId;
-        }
-
-        // Generate a new random session ID
-        async function generateSessionId() {
-            const randomBytes = new Uint8Array(16);
-            window.crypto.getRandomValues(randomBytes);
-            return Array.from(randomBytes).map(b => b.toString(16).padStart(2, '0')).join('');
-        }
-
-        // Function to simulate message encryption (simple Base64)
+        // 加密消息
         function encryptMessage(message) {
-            return btoa(message);
+            const encoder = new TextEncoder();
+            const encodedMessage = encoder.encode(message);
+            return btoa(String.fromCharCode(...new Uint8Array(encodedMessage.buffer)));
         }
 
-        // Function to simulate message decryption (simple Base64)
-        function decryptMessage(encryptedMessage) {
-            return atob(encryptedMessage);
+        // 解密消息
+        function decryptMessage(base64Message) {
+            const decodedMessage = atob(base64Message);
+            const decoder = new TextDecoder();
+            const decodedArray = new Uint8Array(decodedMessage.split("").map(char => char.charCodeAt(0)));
+            return decoder.decode(decodedArray);
         }
 
-        // Display messages in chat box
-        function displayMessages(messages) {
-            const chatBox = document.getElementById('chat-box');
-            chatBox.innerHTML = '';
-            messages.forEach(msg => {
-                const div = document.createElement('div');
-                div.textContent = decryptMessage(msg);
-                chatBox.appendChild(div);
-            });
-            chatBox.scrollTop = chatBox.scrollHeight;
-        }
+        // 发送消息
+        function sendMessage() {
+            const message = document.getElementById('messageInput').value;
+            if (message.trim() === '') return;
 
-        // Fetch chat messages from the server (retrieve encrypted messages)
-        async function fetchMessages() {
-            const response = await fetch(`https://onlinechat.hanfu2022.workers.dev/?session=${sessionId}`);
-            const messages = await response.json();
-            displayMessages(messages);
-        }
-
-        // Send a new encrypted message to the server
-        async function sendMessage(message) {
+            // 加密并显示发送的消息
             const encryptedMessage = encryptMessage(message);
-            const response = await fetch(`https://onlinechat.hanfu2022.workers.dev/?session=${sessionId}`, {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ encryptedMessage })
-            });
-            const result = await response.json();
-            return result;
+            displayMessage(encryptedMessage);  // 显示加密消息
+            document.getElementById('messageInput').value = ''; // 清空输入框
         }
 
-        // Handle send button click
-        document.getElementById('send-btn').addEventListener('click', async () => {
-            const message = document.getElementById('input-box').value.trim();
-            if (message) {
-                await sendMessage(message);
-                document.getElementById('input-box').value = ''; // Clear input
-                fetchMessages(); // Refresh chat messages
-            }
-        });
-
-        // Initialize chat session and start polling for messages
-        async function initializeChat() {
-            await getSessionId();
-            fetchMessages(); // Initial fetch of messages
-            setInterval(fetchMessages, 3000); // Poll every 3 seconds
+        // 显示消息
+        function displayMessage(encryptedMessage) {
+            const decryptedMessage = decryptMessage(encryptedMessage);
+            const chatBox = document.getElementById('chatBox');
+            const newMessage = document.createElement('div');
+            newMessage.textContent = decryptedMessage;
+            chatBox.appendChild(newMessage);
+            chatBox.scrollTop = chatBox.scrollHeight; // 滚动到最新消息
         }
 
-        // Start chat
-        initializeChat();
+        // 模拟接收加密消息
+        function simulateIncomingMessage(encryptedMessage) {
+            displayMessage(encryptedMessage);
+        }
     </script>
 </body>
 </html>

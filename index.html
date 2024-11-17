@@ -76,6 +76,28 @@
             return Array.from(randomBytes).map(b => b.toString(16).padStart(2, '0')).join('');
         }
 
+        // Convert ArrayBuffer to Base64
+        function arrayBufferToBase64(buffer) {
+            let binary = '';
+            const bytes = new Uint8Array(buffer);
+            const length = bytes.byteLength;
+            for (let i = 0; i < length; i++) {
+                binary += String.fromCharCode(bytes[i]);
+            }
+            return window.btoa(binary);
+        }
+
+        // Convert Base64 to ArrayBuffer
+        function base64ToArrayBuffer(base64) {
+            const binaryString = window.atob(base64);
+            const length = binaryString.length;
+            const bytes = new Uint8Array(length);
+            for (let i = 0; i < length; i++) {
+                bytes[i] = binaryString.charCodeAt(i);
+            }
+            return bytes.buffer;
+        }
+
         async function encryptMessage(message) {
             const encoder = new TextEncoder();
             const data = encoder.encode(message);
@@ -90,20 +112,28 @@
                 key,
                 data
             );
-            return { encryptedMessage, iv };
+
+            // Return Base64 encoded encrypted message and IV
+            const encryptedBase64 = arrayBufferToBase64(encryptedMessage);
+            const ivBase64 = arrayBufferToBase64(iv.buffer);
+            return { encryptedMessage: encryptedBase64, iv: ivBase64 };
         }
 
         async function decryptMessage(encryptedMessage, iv) {
+            const encryptedBuffer = base64ToArrayBuffer(encryptedMessage);
+            const ivBuffer = base64ToArrayBuffer(iv);
+
             const key = await crypto.subtle.generateKey(
                 { name: "AES-GCM", length: 256 },
                 true,
                 ["decrypt"]
             );
             const decryptedMessage = await crypto.subtle.decrypt(
-                { name: "AES-GCM", iv: iv },
+                { name: "AES-GCM", iv: ivBuffer },
                 key,
-                encryptedMessage
+                encryptedBuffer
             );
+
             const decoder = new TextDecoder();
             return decoder.decode(decryptedMessage);
         }
@@ -114,9 +144,8 @@
 
             const { encryptedMessage, iv } = await encryptMessage(message);
 
-            // Display encrypted message in chat
-            const encryptedText = new TextDecoder().decode(new Uint8Array(encryptedMessage));
-            messageBox.innerHTML += `<div class="message">Encrypted: ${encryptedText}</div>`;
+            // Display the Base64 encoded encrypted message
+            messageBox.innerHTML += `<div class="message">Encrypted: ${encryptedMessage}</div>`;
 
             // Send the encrypted message to the server
             await fetch(`https://onlinechat.hanfu2022.workers.dev/?session=${sessionId}`, {

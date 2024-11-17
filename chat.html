@@ -55,54 +55,61 @@
 </head>
 <body>
     <div class="chat-container">
-        <h2 style="padding: 15px; margin: 0; background-color: #007bff; color: white; text-align: center;">End-to-End Encrypted Chat</h2>
+        <h2>End-to-End Encrypted Chat</h2>
         <div id="chatBox"></div>
         <input type="text" id="messageInput" placeholder="Enter message" />
         <button onclick="sendMessage()">Send</button>
     </div>
 
     <script>
-        // 获取URL中的session参数
+        const sessionID = getSessionID();
+        const encryptionKey = 'some-secret-key';  // 密钥可以通过客户端生成或传递（这里只做示例）
+
         function getSessionID() {
             const urlParams = new URLSearchParams(window.location.search);
             let sessionID = urlParams.get('session');
             if (!sessionID) {
-                sessionID = Math.random().toString(36).substring(2, 15);  // 没有session时，生成新sessionID
-                // 更新URL，传递新的sessionID
+                sessionID = Math.random().toString(36).substring(2, 15);  // 如果没有session生成一个
                 const newURL = window.location.href.split('?')[0] + '?session=' + sessionID;
-                window.history.pushState({}, '', newURL);
+                window.history.pushState({}, '', newURL); // 更新URL
             }
             return sessionID;
         }
 
-        // 获取当前会话ID
-        const sessionID = getSessionID();
-        console.log('Current Session ID:', sessionID);
-
         // 加密消息
         function encryptMessage(message) {
-            const encoder = new TextEncoder();
-            const encodedMessage = encoder.encode(message);
-            return btoa(String.fromCharCode(...new Uint8Array(encodedMessage.buffer)));
+            return btoa(unescape(encodeURIComponent(message))); // 简单的Base64加密
         }
 
         // 解密消息
-        function decryptMessage(base64Message) {
-            const decodedMessage = atob(base64Message);
-            const decoder = new TextDecoder();
-            const decodedArray = new Uint8Array(decodedMessage.split("").map(char => char.charCodeAt(0)));
-            return decoder.decode(decodedArray);
+        function decryptMessage(encryptedMessage) {
+            return decodeURIComponent(escape(atob(encryptedMessage))); // 解密
         }
 
         // 发送消息
         function sendMessage() {
             const message = document.getElementById('messageInput').value;
-            if (message.trim() === '') return;
+            if (!message.trim()) return;
 
-            // 加密并显示发送的消息
+            // 加密消息
             const encryptedMessage = encryptMessage(message);
-            displayMessage(encryptedMessage);  // 显示加密消息
-            document.getElementById('messageInput').value = ''; // 清空输入框
+
+            // 发送加密消息到 Cloudflare Worker
+            fetch('https://onlinechat.hanfu2022.workers.dev/?session=' + sessionID, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({
+                    message: encryptedMessage,
+                    key: encryptionKey,
+                })
+            })
+            .then(response => response.json())
+            .then(data => {
+                displayMessage(data.message); // 显示加密消息（之后解密显示）
+            })
+            .catch(error => console.error('Error:', error));
         }
 
         // 显示消息
@@ -113,11 +120,6 @@
             newMessage.textContent = decryptedMessage;
             chatBox.appendChild(newMessage);
             chatBox.scrollTop = chatBox.scrollHeight; // 滚动到最新消息
-        }
-
-        // 模拟接收加密消息
-        function simulateIncomingMessage(encryptedMessage) {
-            displayMessage(encryptedMessage);
         }
     </script>
 </body>

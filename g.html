@@ -3,48 +3,64 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Anonymous E2EE Chat</title>
+  <title>🔐 Anonymous E2EE Chat</title>
   <style>
-    body { font-family: sans-serif; padding: 2rem; background: #f9f9f9; }
-    #messages { border: 1px solid #ccc; padding: 1rem; height: 300px; overflow-y: auto; background: #fff; }
-    #input { margin-top: 1rem; display: flex; gap: 1rem; }
+    body {
+      font-family: sans-serif;
+      background: #f4f4f4;
+      padding: 2rem;
+    }
+    #messages {
+      background: white;
+      border: 1px solid #ccc;
+      height: 300px;
+      overflow-y: auto;
+      padding: 1rem;
+      margin-bottom: 1rem;
+    }
+    #input {
+      display: flex;
+      gap: 0.5rem;
+    }
+    input, button {
+      font-size: 1rem;
+      padding: 0.5rem;
+    }
+    input {
+      flex: 1;
+    }
   </style>
 </head>
 <body>
   <h2>🔐 Anonymous E2EE Chat</h2>
-  <p>Room Key: <code id="room-key"></code></p>
+  <p>当前共享密钥: <code id="keyDisplay"></code></p>
   <div id="messages"></div>
   <div id="input">
-    <input type="text" id="msg" placeholder="Type a message..." style="flex:1;" />
+    <input type="text" id="msg" placeholder="Type your message..." />
     <button onclick="sendMessage()">Send</button>
   </div>
 
-  <script>
-    const hashKey = location.hash.slice(1) || "default-room";
-    document.getElementById("room-key").textContent = hashKey;
+  <script type="module">
+    const keyFromHash = decodeURIComponent(location.hash.slice(1) || "default");
+    document.getElementById("keyDisplay").textContent = keyFromHash;
 
+    const sharedKey = new TextEncoder().encode(keyFromHash.padEnd(16, '0').slice(0, 16));
     const encoder = new TextEncoder();
     const decoder = new TextDecoder();
-    const keyMaterial = await crypto.subtle.importKey(
-      "raw",
-      encoder.encode(hashKey.padEnd(16, "_")),
-      { name: "AES-GCM" },
-      false,
-      ["encrypt", "decrypt"]
-    );
 
     async function encrypt(text) {
       const iv = crypto.getRandomValues(new Uint8Array(12));
-      const encrypted = await crypto.subtle.encrypt({ name: "AES-GCM", iv }, keyMaterial, encoder.encode(text));
-      const combined = new Uint8Array([...iv, ...new Uint8Array(encrypted)]);
-      return btoa(String.fromCharCode(...combined));
+      const cryptoKey = await crypto.subtle.importKey("raw", sharedKey, "AES-GCM", false, ["encrypt"]);
+      const encrypted = await crypto.subtle.encrypt({ name: "AES-GCM", iv }, cryptoKey, encoder.encode(text));
+      return btoa(String.fromCharCode(...iv, ...new Uint8Array(encrypted)));
     }
 
-    async function decrypt(base64) {
-      const data = Uint8Array.from(atob(base64), c => c.charCodeAt(0));
-      const iv = data.slice(0, 12);
-      const encrypted = data.slice(12);
-      const decrypted = await crypto.subtle.decrypt({ name: "AES-GCM", iv }, keyMaterial, encrypted);
+    async function decrypt(data) {
+      const raw = Uint8Array.from(atob(data), c => c.charCodeAt(0));
+      const iv = raw.slice(0, 12);
+      const encrypted = raw.slice(12);
+      const cryptoKey = await crypto.subtle.importKey("raw", sharedKey, "AES-GCM", false, ["decrypt"]);
+      const decrypted = await crypto.subtle.decrypt({ name: "AES-GCM", iv }, cryptoKey, encrypted);
       return decoder.decode(decrypted);
     }
 
@@ -59,18 +75,21 @@
       document.getElementById("msg").value = "";
     }
 
-    const evtSource = new EventSource("https://onlinechat.hanfu2022.workers.dev/sse");
-    evtSource.onmessage = async (e) => {
+    const evt = new EventSource("https://onlinechat.hanfu2022.workers.dev/sse");
+    evt.onmessage = async (e) => {
       try {
-        const msg = await decrypt(e.data);
+        const text = await decrypt(e.data);
         const div = document.createElement("div");
-        div.textContent = msg;
+        div.textContent = text;
         document.getElementById("messages").appendChild(div);
+
+        // ⏳ 设置36秒后自动删除
         setTimeout(() => div.remove(), 36_000);
-      } catch (err) {
-        // 解密失败忽略（可能不是同一个密钥）
-      }
+      } catch {}
     };
+
+    // 暴露给 HTML 按钮
+    window.sendMessage = sendMessage;
   </script>
 </body>
 </html>

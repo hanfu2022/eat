@@ -1,124 +1,68 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>End-to-End Encrypted Chat</title>
-    <style>
-        body {
-            font-family: Arial, sans-serif;
-            margin: 0;
-            padding: 0;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            height: 100vh;
-            background-color: #f4f4f4;
-        }
-        .chat-container {
-            width: 500px;
-            background-color: white;
-            border-radius: 8px;
-            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
-            overflow: hidden;
-            display: flex;
-            flex-direction: column;
-            height: 80vh;
-        }
-        #chatBox {
-            flex-grow: 1;
-            padding: 15px;
-            overflow-y: auto;
-            border-bottom: 1px solid #ccc;
-            font-size: 16px;
-            height: 100%;
-        }
-        input[type="text"] {
-            padding: 10px;
-            border: 1px solid #ccc;
-            width: 100%;
-            border-radius: 4px;
-        }
-        button {
-            padding: 10px 15px;
-            background-color: #007bff;
-            color: white;
-            border: none;
-            cursor: pointer;
-            border-radius: 4px;
-            margin-top: 10px;
-        }
-        button:hover {
-            background-color: #0056b3;
-        }
-    </style>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Anonymous E2EE Chat</title>
+  <style>
+    body { font-family: sans-serif; padding: 2rem; background: #f9f9f9; }
+    #messages { border: 1px solid #ccc; padding: 1rem; height: 300px; overflow-y: auto; background: #fff; }
+    #input { margin-top: 1rem; display: flex; gap: 1rem; }
+  </style>
 </head>
 <body>
-    <div class="chat-container">
-        <h2 style="padding: 15px; margin: 0; background-color: #007bff; color: white; text-align: center;">End-to-End Encrypted Chat</h2>
-        <div id="chatBox"></div>
-        <input type="text" id="messageInput" placeholder="Enter message" />
-        <button onclick="sendMessage()">Send</button>
-    </div>
+  <h2>🔐 Anonymous E2EE Chat</h2>
+  <div id="messages"></div>
+  <div id="input">
+    <input type="text" id="msg" placeholder="Type a message..." style="flex:1;" />
+    <button onclick="sendMessage()">Send</button>
+  </div>
 
-    <script>
-        // 获取URL中的session参数
-        function getSessionID() {
-            const urlParams = new URLSearchParams(window.location.search);
-            let sessionID = urlParams.get('session');
-            if (!sessionID) {
-                sessionID = Math.random().toString(36).substring(2, 15);  // 没有session时，生成新sessionID
-                // 更新URL，传递新的sessionID
-                const newURL = window.location.href.split('?')[0] + '?session=' + sessionID;
-                window.history.pushState({}, '', newURL);
-            }
-            return sessionID;
-        }
+  <script>
+    const secretKey = crypto.getRandomValues(new Uint8Array(16)); // temporary per session
+    const enc = new TextEncoder();
+    const dec = new TextDecoder();
 
-        // 获取当前会话ID
-        const sessionID = getSessionID();
-        console.log('Current Session ID:', sessionID);
+    async function encrypt(text) {
+      const iv = crypto.getRandomValues(new Uint8Array(12));
+      const key = await crypto.subtle.importKey("raw", secretKey, "AES-GCM", false, ["encrypt"]);
+      const cipher = await crypto.subtle.encrypt({ name: "AES-GCM", iv }, key, enc.encode(text));
+      return btoa([...iv, ...new Uint8Array(cipher)].map(b => String.fromCharCode(b)).join(""));
+    }
 
-        // 加密消息
-        function encryptMessage(message) {
-            const encoder = new TextEncoder();
-            const encodedMessage = encoder.encode(message);
-            return btoa(String.fromCharCode(...new Uint8Array(encodedMessage.buffer)));
-        }
+    async function decrypt(base64) {
+      const raw = new Uint8Array(atob(base64).split('').map(c => c.charCodeAt(0)));
+      const iv = raw.slice(0, 12);
+      const data = raw.slice(12);
+      const key = await crypto.subtle.importKey("raw", secretKey, "AES-GCM", false, ["decrypt"]);
+      const plain = await crypto.subtle.decrypt({ name: "AES-GCM", iv }, key, data);
+      return dec.decode(plain);
+    }
 
-        // 解密消息
-        function decryptMessage(base64Message) {
-            const decodedMessage = atob(base64Message);
-            const decoder = new TextDecoder();
-            const decodedArray = new Uint8Array(decodedMessage.split("").map(char => char.charCodeAt(0)));
-            return decoder.decode(decodedArray);
-        }
+    async function sendMessage() {
+      const text = document.getElementById("msg").value;
+      if (!text) return;
+      const encrypted = await encrypt(text);
+      await fetch("https://onlinechat.hanfu2022.workers.dev/send", {
+        method: "POST",
+        body: encrypted,
+      });
+      document.getElementById("msg").value = "";
+    }
 
-        // 发送消息
-        function sendMessage() {
-            const message = document.getElementById('messageInput').value;
-            if (message.trim() === '') return;
-
-            // 加密并显示发送的消息
-            const encryptedMessage = encryptMessage(message);
-            displayMessage(encryptedMessage);  // 显示加密消息
-            document.getElementById('messageInput').value = ''; // 清空输入框
-        }
-
-        // 显示消息
-        function displayMessage(encryptedMessage) {
-            const decryptedMessage = decryptMessage(encryptedMessage);
-            const chatBox = document.getElementById('chatBox');
-            const newMessage = document.createElement('div');
-            newMessage.textContent = decryptedMessage;
-            chatBox.appendChild(newMessage);
-            chatBox.scrollTop = chatBox.scrollHeight; // 滚动到最新消息
-        }
-
-        // 模拟接收加密消息
-        function simulateIncomingMessage(encryptedMessage) {
-            displayMessage(encryptedMessage);
-        }
-    </script>
+    const evtSource = new EventSource("https://onlinechat.hanfu2022.workers.dev/sse");
+    evtSource.onmessage = async (e) => {
+      try {
+        const msg = await decrypt(e.data);
+        const div = document.createElement("div");
+        div.textContent = msg;
+        document.getElementById("messages").appendChild(div);
+ // ⏳ 设置36秒后自动删除
+    setTimeout(() => {
+      div.remove();
+    }, 36_000); // 36秒
+      } catch {}
+    };
+  </script>
 </body>
 </html>

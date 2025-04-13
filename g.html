@@ -1,0 +1,76 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Anonymous E2EE Chat</title>
+  <style>
+    body { font-family: sans-serif; padding: 2rem; background: #f9f9f9; }
+    #messages { border: 1px solid #ccc; padding: 1rem; height: 300px; overflow-y: auto; background: #fff; }
+    #input { margin-top: 1rem; display: flex; gap: 1rem; }
+  </style>
+</head>
+<body>
+  <h2>🔐 Anonymous E2EE Chat</h2>
+  <p>Room Key: <code id="room-key"></code></p>
+  <div id="messages"></div>
+  <div id="input">
+    <input type="text" id="msg" placeholder="Type a message..." style="flex:1;" />
+    <button onclick="sendMessage()">Send</button>
+  </div>
+
+  <script>
+    const hashKey = location.hash.slice(1) || "default-room";
+    document.getElementById("room-key").textContent = hashKey;
+
+    const encoder = new TextEncoder();
+    const decoder = new TextDecoder();
+    const keyMaterial = await crypto.subtle.importKey(
+      "raw",
+      encoder.encode(hashKey.padEnd(16, "_")),
+      { name: "AES-GCM" },
+      false,
+      ["encrypt", "decrypt"]
+    );
+
+    async function encrypt(text) {
+      const iv = crypto.getRandomValues(new Uint8Array(12));
+      const encrypted = await crypto.subtle.encrypt({ name: "AES-GCM", iv }, keyMaterial, encoder.encode(text));
+      const combined = new Uint8Array([...iv, ...new Uint8Array(encrypted)]);
+      return btoa(String.fromCharCode(...combined));
+    }
+
+    async function decrypt(base64) {
+      const data = Uint8Array.from(atob(base64), c => c.charCodeAt(0));
+      const iv = data.slice(0, 12);
+      const encrypted = data.slice(12);
+      const decrypted = await crypto.subtle.decrypt({ name: "AES-GCM", iv }, keyMaterial, encrypted);
+      return decoder.decode(decrypted);
+    }
+
+    async function sendMessage() {
+      const text = document.getElementById("msg").value;
+      if (!text) return;
+      const encrypted = await encrypt(text);
+      await fetch("https://onlinechat.hanfu2022.workers.dev/send", {
+        method: "POST",
+        body: encrypted,
+      });
+      document.getElementById("msg").value = "";
+    }
+
+    const evtSource = new EventSource("https://onlinechat.hanfu2022.workers.dev/sse");
+    evtSource.onmessage = async (e) => {
+      try {
+        const msg = await decrypt(e.data);
+        const div = document.createElement("div");
+        div.textContent = msg;
+        document.getElementById("messages").appendChild(div);
+        setTimeout(() => div.remove(), 36_000);
+      } catch (err) {
+        // 解密失败忽略（可能不是同一个密钥）
+      }
+    };
+  </script>
+</body>
+</html>

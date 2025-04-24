@@ -1,0 +1,130 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Bestellung</title>
+    <style>
+        .payment-option {
+            display: inline-block;
+            padding: 1em;
+            margin: 0.5em;
+            background-color: #f8f9fa;
+            border: 1px solid #ccc;
+            border-radius: 5px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .payment-option:hover {
+            background-color: #007bff;
+            color: white;
+        }
+
+        .payment-option.selected {
+            background-color: #007bff;
+            color: white;
+        }
+
+        .payment-option:active {
+            transform: scale(0.95);
+        }
+
+        #success-message {
+            display: none;
+            background-color: #d4edda;
+            color: #155724;
+            padding: 2em;
+            border: 1px solid #c3e6cb;
+            border-radius: 10px;
+            margin-top: 1em;
+            text-align: center;
+            font-size: 1.2em;
+            animation: fadeIn 0.5s ease;
+        }
+
+        @keyframes fadeIn {
+            0% { opacity: 0; }
+            100% { opacity: 1; }
+        }
+    </style>
+</head>
+<body>
+    <h1>Bestellung aufgeben</h1>
+
+    <div>
+        <h2>Wählen Sie eine Zahlungsmethode</h2>
+        <div class="payment-methods">
+            <button class="payment-option selected" data-payment="bank_transfer">Banküberweisung</button>
+            <button class="payment-option" data-payment="cash_on_delivery">Nachnahme</button>
+        </div>
+    </div>
+
+    <h3>Produkte</h3>
+    <ul id="products-list">
+        <li>Produkt A - €15</li>
+        <li>Produkt B - €20</li>
+    </ul>
+
+    <h3>Zusammenfassung</h3>
+    <p id="order-summary">
+        Bestellnummer: <span id="order-id">---</span><br>
+        Gesamtbetrag: <span id="total-amount">---</span>
+    </p>
+
+    <button id="submit-order">Bestellung abschicken</button>
+
+    <div id="success-message">Ihre Bestellung wurde erfolgreich aufgenommen! Vielen Dank!</div>
+
+    <script>
+        // Event handler for selecting payment method
+        document.querySelectorAll('.payment-option').forEach(button => {
+            button.addEventListener('click', (e) => {
+                document.querySelectorAll('.payment-option').forEach(btn => btn.classList.remove('selected'));
+                e.target.classList.add('selected');
+                document.getElementById('payment').value = e.target.dataset.payment;
+            });
+        });
+
+        // Function to submit order
+        async function submitOrder() {
+            const paymentMethod = document.querySelector('.payment-option.selected').dataset.payment;
+            const orderData = {
+                products: [
+                    { product: 'Produkt A - €15' },
+                    { product: 'Produkt B - €20' }
+                ],
+                email: 'user@example.com', // Example email
+                address: '123 Street Name', // Example address
+                payment: paymentMethod
+            };
+
+            const response = await fetch('/submit', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify(orderData)
+            });
+
+            const result = await response.json();
+            const discount = (paymentMethod === 'bank_transfer') ? result.totalAmount * 0.9 : result.totalAmount;
+
+            document.getElementById('order-id').innerText = result.orderId;
+            document.getElementById('total-amount').innerText = `€${discount.toFixed(2)}`;
+
+            if (paymentMethod === 'bank_transfer') {
+                document.getElementById('success-message').innerHTML = `
+                    Ihre Bestellung wurde erfolgreich aufgenommen!<br>
+                    Banküberweisung: Bitte überweisen Sie den Betrag an das Bankkonto: DE1234567890, Bankname: Beispielbank.<br>
+                    Gesamtbetrag: €${discount.toFixed(2)}`;
+            }
+
+            document.getElementById('success-message').style.display = 'block';
+        }
+
+        // Submit button event listener
+        document.getElementById('submit-order').addEventListener('click', submitOrder);
+    </script>
+</body>
+</html>

@@ -3,128 +3,213 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Bestellung</title>
+    <title>Shop für Dessous</title>
     <style>
-        .payment-option {
-            display: inline-block;
+        body { font-family: Arial, sans-serif; margin: 0; padding: 0; }
+        header { background-color: #f8f9fa; padding: 1em; text-align: center; }
+        main { padding: 2em; margin-right: 320px; } /* Reserve space for floating sidebar */
+        .product { border: 1px solid #ccc; border-radius: 5px; padding: 1em; margin-bottom: 1em; }
+        .product h3 { margin: 0 0 0.5em; }
+        .product p { margin: 0.5em 0; }
+        .floating-sidebar { 
+            position: fixed; 
+            top: 80px; 
+            right: 20px; 
+            width: 300px; 
+            max-height: calc(100vh - 100px); /* Ensure it fits within the screen */
+            background-color: #ffffff; 
+            border: 1px solid #ccc; 
+            border-radius: 5px; 
+            box-shadow: 0 4px 8px rgba(0,0,0,0.1); 
+            padding: 1em; 
+            z-index: 1000;
+            overflow-y: auto; /* Add scroll for content overflow */
+        }
+        .floating-sidebar h2 { font-size: 1.2em; margin-bottom: 1em; }
+        .floating-sidebar ul { list-style-type: none; padding: 0; }
+        .floating-sidebar ul li { margin-bottom: 0.5em; }
+        .floating-sidebar button { 
+            width: 100%; 
+            background-color: #007bff; 
+            color: white; 
+            padding: 0.5em; 
+            border: none; 
+            border-radius: 5px; 
+            cursor: pointer; 
+        }
+        .floating-sidebar button:hover { background-color: #0056b3; }
+        label { display: block; margin-bottom: 0.5em; }
+        input, textarea, select { width: 100%; padding: 0.5em; margin-bottom: 1em; border: 1px solid #ccc; border-radius: 5px; }
+        #success-message { display: none; background-color: #d4edda; color: #155724; padding: 1em; border: 1px solid #c3e6cb; border-radius: 5px; margin-top: 1em; text-align: center; }
+
+        /* Responsive Design for Small Screens */
+        @media (max-width: 768px) {
+            main { margin-right: 0; } /* Remove reserved space for the sidebar */
+            .floating-sidebar {
+                position: static; /* Make the sidebar flow with the page */
+                width: auto;
+                max-height: none;
+                margin-bottom: 1em;
+            }
+        }
+
+        /* Payment Method Buttons */
+        .payment-method {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 1em;
+        }
+        .payment-method div {
+            width: 48%;
             padding: 1em;
-            margin: 0.5em;
-            background-color: #f8f9fa;
-            border: 1px solid #ccc;
+            background-color: #f0f0f0;
+            text-align: center;
             border-radius: 5px;
             cursor: pointer;
-            transition: all 0.3s ease;
+            transition: background-color 0.3s, color 0.3s;
         }
-
-        .payment-option:hover {
+        .payment-method div.selected {
             background-color: #007bff;
             color: white;
         }
-
-        .payment-option.selected {
-            background-color: #007bff;
+        .payment-method div:hover {
+            background-color: #0056b3;
             color: white;
         }
 
-        .payment-option:active {
-            transform: scale(0.95);
-        }
-
-        #success-message {
+        .bank-transfer-info {
             display: none;
-            background-color: #d4edda;
-            color: #155724;
-            padding: 2em;
-            border: 1px solid #c3e6cb;
-            border-radius: 10px;
+            background-color: #fff3cd;
+            color: #856404;
+            padding: 1em;
+            border: 1px solid #ffeeba;
+            border-radius: 5px;
             margin-top: 1em;
-            text-align: center;
-            font-size: 1.2em;
-            animation: fadeIn 0.5s ease;
-        }
-
-        @keyframes fadeIn {
-            0% { opacity: 0; }
-            100% { opacity: 1; }
         }
     </style>
 </head>
 <body>
-    <h1>Bestellung aufgeben</h1>
-
-    <div>
-        <h2>Wählen Sie eine Zahlungsmethode</h2>
-        <div class="payment-methods">
-            <button class="payment-option selected" data-payment="bank_transfer">Banküberweisung</button>
-            <button class="payment-option" data-payment="cash_on_delivery">Nachnahme</button>
+    <header>
+        <h1>Online Shop für Dessous</h1>
+    </header>
+    <main>
+        <h2>Unsere Produkte</h2>
+        <div class="product" data-product="Elegantes Nachthemd - €49.99">
+            <h3>Elegantes Nachthemd</h3>
+            <p>Preis: €49.99</p>
+            <p>Beschreibung: Hochwertiges Nachthemd aus Seide.</p>
+            <button class="add-to-cart">In den Warenkorb</button>
         </div>
-    </div>
+        <div class="product" data-product="Spitze Unterwäsche - €29.99">
+            <h3>Spitze Unterwäsche</h3>
+            <p>Preis: €29.99</p>
+            <p>Beschreibung: Komfortable und sexy Unterwäsche.</p>
+            <button class="add-to-cart">In den Warenkorb</button>
+        </div>
+        <div class="product" data-product="Satin Bademantel - €39.99">
+            <h3>Satin Bademantel</h3>
+            <p>Preis: €39.99</p>
+            <p>Beschreibung: Luxuriöser Satin Bademantel für besondere Anlässe.</p>
+            <button class="add-to-cart">In den Warenkorb</button>
+        </div>
+    </main>
 
-    <h3>Produkte</h3>
-    <ul id="products-list">
-        <li>Produkt A - €15</li>
-        <li>Produkt B - €20</li>
-    </ul>
+    <aside class="floating-sidebar">
+        <div class="cart">
+            <h2>Warenkorb</h2>
+            <ul id="cart-items">
+                <li>Ihr Warenkorb ist leer.</li>
+            </ul>
+        </div>
+        <div class="order">
+            <h2>Bestellung aufgeben</h2>
+            <form id="orderForm">
+                <label for="email">E-Mail-Adresse:</label>
+                <input type="email" id="email" name="email" placeholder="z.B. user@example.com" required>
 
-    <h3>Zusammenfassung</h3>
-    <p id="order-summary">
-        Bestellnummer: <span id="order-id">---</span><br>
-        Gesamtbetrag: <span id="total-amount">---</span>
-    </p>
+                <label for="address">Lieferadresse:</label>
+                <textarea id="address" name="address" placeholder="z.B. Teststraße 123, 12345 Berlin" required></textarea>
 
-    <button id="submit-order">Bestellung abschicken</button>
+                <label>Zahlungsmethode:</label>
+                <div class="payment-method">
+                    <div id="bank-transfer" class="selected">Banküberweisung</div>
+                    <div id="cash-on-delivery">Nachnahme</div>
+                </div>
 
-    <div id="success-message">Ihre Bestellung wurde erfolgreich aufgenommen! Vielen Dank!</div>
+                <button type="submit">Bestellen</button>
+            </form>
+            <div class="bank-transfer-info">
+                <h3>Banküberweisungsinformationen:</h3>
+                <p>Bankname: XYZ Bank</p>
+                <p>IBAN: DE12345678901234567890</p>
+                <p>BIC: XYZBDEFF</p>
+            </div>
+        </div>
+    </aside>
 
     <script>
-        // Event handler for selecting payment method
-        document.querySelectorAll('.payment-option').forEach(button => {
+        const cartItems = [];
+        const cartList = document.getElementById('cart-items');
+        const paymentMethodElements = document.querySelectorAll('.payment-method div');
+        let selectedPaymentMethod = 'bank_transfer';
+
+        // Function to update the cart display
+        function updateCart() {
+            cartList.innerHTML = "";
+            if (cartItems.length === 0) {
+                cartList.innerHTML = "<li>Ihr Warenkorb ist leer.</li>";
+            } else {
+                cartItems.forEach((item, index) => {
+                    const li = document.createElement("li");
+                    li.innerHTML = `${item.product} <button onclick="removeFromCart(${index})">Entfernen</button>`;
+                    cartList.appendChild(li);
+                });
+            }
+        }
+
+        // Add products to the cart
+        document.querySelectorAll('.add-to-cart').forEach(button => {
             button.addEventListener('click', (e) => {
-                document.querySelectorAll('.payment-option').forEach(btn => btn.classList.remove('selected'));
-                e.target.classList.add('selected');
-                document.getElementById('payment').value = e.target.dataset.payment;
+                const product = e.target.closest('.product').dataset.product;
+                cartItems.push({ product });
+                updateCart();
             });
         });
 
-        // Function to submit order
-        async function submitOrder() {
-            const paymentMethod = document.querySelector('.payment-option.selected').dataset.payment;
-            const orderData = {
-                products: [
-                    { product: 'Produkt A - €15' },
-                    { product: 'Produkt B - €20' }
-                ],
-                email: 'user@example.com', // Example email
-                address: '123 Street Name', // Example address
-                payment: paymentMethod
-            };
+        // Remove products from the cart
+        window.removeFromCart = (index) => {
+            cartItems.splice(index, 1);
+            updateCart();
+        };
 
-            const response = await fetch('/submit', {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                },
-                body: JSON.stringify(orderData)
+        // Payment method selection
+        paymentMethodElements.forEach(method => {
+            method.addEventListener('click', () => {
+                paymentMethodElements.forEach(m => m.classList.remove('selected'));
+                method.classList.add('selected');
+                selectedPaymentMethod = method.id;
+                if (selectedPaymentMethod === 'bank-transfer') {
+                    document.querySelector('.bank-transfer-info').style.display = 'block';
+                } else {
+                    document.querySelector('.bank-transfer-info').style.display = 'none';
+                }
             });
+        });
 
-            const result = await response.json();
-            const discount = (paymentMethod === 'bank_transfer') ? result.totalAmount * 0.9 : result.totalAmount;
+        // Handle form submission
+        document.getElementById('orderForm').addEventListener('submit', function (e) {
+            e.preventDefault();
 
-            document.getElementById('order-id').innerText = result.orderId;
-            document.getElementById('total-amount').innerText = `€${discount.toFixed(2)}`;
+            // Generate Order Number and calculate total
+            const orderNumber = `ORD-${Math.random().toString(36).substring(2, 15).toUpperCase()}`;
+            let totalAmount = cartItems.length * 30; // Example total calculation (could use real product prices)
 
-            if (paymentMethod === 'bank_transfer') {
-                document.getElementById('success-message').innerHTML = `
-                    Ihre Bestellung wurde erfolgreich aufgenommen!<br>
-                    Banküberweisung: Bitte überweisen Sie den Betrag an das Bankkonto: DE1234567890, Bankname: Beispielbank.<br>
-                    Gesamtbetrag: €${discount.toFixed(2)}`;
-            }
-
-            document.getElementById('success-message').style.display = 'block';
-        }
-
-        // Submit button event listener
-        document.getElementById('submit-order').addEventListener('click', submitOrder);
+            // Display success message
+            const successMessage = document.createElement('div');
+            successMessage.id = 'success-message';
+            successMessage.innerHTML = `<p>Bestellung erfolgreich! Bestellnummer: ${orderNumber}<br>Totalbetrag: €${totalAmount.toFixed(2)}</p>`;
+            document.body.appendChild(successMessage);
+        });
     </script>
 </body>
 </html>

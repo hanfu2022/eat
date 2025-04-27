@@ -1,0 +1,708 @@
+
+<!DOCTYPE html>
+<html lang="de">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Shop für Dessous</title>
+    <style>
+        body { font-family: Arial, sans-serif; margin: 0; padding: 0; }
+        header { background-color: #f8f9fa; padding: 1em; text-align: center; }
+        main { padding: 2em; margin-right: 320px; }
+        .product { 
+            border: 1px solid #ccc; 
+            border-radius: 5px; 
+            padding: 1em; 
+            margin-bottom: 1em; 
+            display: flex; 
+            align-items: flex-start; 
+            gap: 1em; 
+        }
+        .product-info { flex: 1; }
+        .product h3 { margin: 0 0 0.5em; }
+        .product p { margin: 0.5em 0; }
+        .floating-sidebar { 
+            position: fixed; 
+            top: 80px; 
+            right: 20px; 
+            width: 300px; 
+            max-height: calc(100vh - 100px); 
+            background-color: #ffffff; 
+            border: 1px solid #ccc; 
+            border-radius: 5px; 
+            box-shadow: 0 4px 8px rgba(0,0,0,0.1); 
+            padding: 1em; 
+            z-index: 1000;
+            overflow-y: auto;
+        }
+        .floating-sidebar h2 { font-size: 1.2em; margin-bottom: 1em; }
+        .floating-sidebar ul { list-style-type: none; padding: 0; }
+        .floating-sidebar ul li { margin-bottom: 0.5em; }
+        .floating-sidebar button { 
+            width: 100%; 
+            background-color: #007bff; 
+            color: white; 
+            padding: 0.5em; 
+            border: none; 
+            border-radius: 5px; 
+            cursor: pointer; 
+        }
+        .floating-sidebar button:hover { background-color: #0056b3; }
+        label { display: block; margin-bottom: 0.5em; }
+        input, textarea, select { width: 100%; padding: 0.5em; margin-bottom: 1em; border: 1px solid #ccc; border-radius: 5px; }
+        #success-message { display: none; background-color: #d4edda; color: #155724; padding: 1em; border: 1px solid #c3e6cb; border-radius: 5px; margin-top: 1em; text-align: center; }
+
+        /* 模态窗口样式 */
+        #modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.5);
+            z-index: 1001;
+        }
+        #modal > div {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            background: white;
+            padding: 2em;
+            border-radius: 10px;
+            width: 80%;
+            max-width: 400px;
+            text-align: center;
+        }
+        #modal button {
+            padding: 0.5em 1em;
+            background-color: #007bff;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+        }
+        #modal button:hover {
+            background-color: #0056b3;
+        }
+
+        /* 卡片支付方式样式 */
+        .payment-methods {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 1em;
+        }
+        .payment-card {
+            background-color: #f8f9fa;
+            border: 1px solid #ccc;
+            border-radius: 8px;
+            padding: 1em;
+            width: 45%;
+            text-align: center;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+        .payment-card:hover {
+            background-color: #007bff;
+            color: white;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+        }
+        .payment-card.selected {
+            border-color: #007bff;
+            background-color: #e9f1ff;
+        }
+        .payment-card h4 {
+            margin: 0 0 0.5em;
+        }
+        .payment-card p {
+            margin: 0;
+        }
+
+        /* 转账提示信息 */
+        #bank-transfer-info {
+            display: none;
+            background-color: #fff3cd;
+            color: #856404;
+            padding: 1em;
+            margin-top: 1em;
+            border: 1px solid #ffeeba;
+            border-radius: 5px;
+        }
+
+        /* 缩略图样式 */
+        .thumbnail-container {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 0.5em;
+            max-width: 300px;
+        }
+        .thumbnail {
+            width: 80px;
+            height: 80px;
+            object-fit: cover;
+            border-radius: 5px;
+            cursor: pointer;
+            transition: transform 0.3s ease, width 0.3s ease, height 0.3s ease;
+        }
+        .thumbnail:hover {
+            transform: scale(1.1);
+            width: calc(30vw - 20px);
+            height: auto;
+            z-index: 10;
+            position: relative;
+        }
+
+        /* 加载更多样式 */
+        #loading {
+            text-align: center;
+            padding: 1em;
+            display: none;
+        }
+        #loading-prompt {
+            text-align: center;
+            padding: 1em;
+            color: #666;
+            font-size: 1em;
+        }
+        .progress-bar-container {
+            width: 100%;
+            max-width: 300px;
+            margin: 0 auto 1em;
+            background-color: #f3f3f3;
+            border-radius: 5px;
+            overflow: hidden;
+        }
+        .progress-bar {
+            height: 10px;
+            background-color: #007bff;
+            width: 0%;
+            transition: width 0.3s ease;
+        }
+
+        /* 响应式设计 */
+        @media (max-width: 768px) {
+            main { margin-right: 0; }
+            .floating-sidebar {
+                position: static;
+                width: auto;
+                max-height: none;
+                margin-bottom: 1em;
+            }
+            .product { flex-direction: column; }
+            .thumbnail-container { max-width: 100%; justify-content: center; }
+            .thumbnail:hover {
+                width: calc(80vw - 20px);
+            }
+        }
+    </style>
+</head>
+<body>
+    <header>
+        <h1>Online Shop für Dessous</h1>
+    </header>
+    <main>
+        <h2>Unsere Produkte</h2>
+        <div id="product-container">
+            <!-- 初始显示的产品 -->
+        </div>
+        <div id="loading">Lade mehr Produkte...</div>
+        <div id="loading-prompt">Nach unten scrollen, um mehr zu laden</div>
+        <div class="progress-bar-container">
+            <div class="progress-bar" id="progress-bar"></div>
+        </div>
+    </main>
+
+    <aside class="floating-sidebar">
+        <div class="cart">
+            <h2>Warenkorb</h2>
+            <ul id="cart-items">
+                <li>Ihr Warenkorb ist leer.</li>
+            </ul>
+            <div id="cart-total">Gesamtbetrag: €0.00</div>
+        </div>
+        <div class="order">
+            <h2>Bestellung aufgeben</h2>
+            <form id="orderForm">
+                <label for="email">E-Mail-Adresse:</label>
+                <input type="email" id="email" name="email" placeholder="z.B. user@example.com" required>
+
+                <label for="address">Lieferadresse:</label>
+                <textarea id="address" name="address" placeholder="z.B. Teststraße 123, 12345 Berlin" required></textarea>
+
+                <label for="payment">Zahlungsmethode:</label>
+                <div id="payment" class="payment-methods">
+                    <div class="payment-card" data-value="bank_transfer">
+                        <h4>Banküberweisung</h4>
+                        <p>Überweisung auf unser Bankkonto.</p>
+                    </div>
+                    <div class="payment-card" data-value="cash_on_delivery">
+                        <h4>Nachnahme</h4>
+                        <p>Bezahlen bei Lieferung.</p>
+                    </div>
+                </div>
+
+                <div id="bank-transfer-info">
+                    <p>Bitte überweisen Sie den Betrag auf unser Bankkonto. Die Details werden Ihnen per E-Mail zugesandt.</p>
+                </div>
+
+                <button type="submit">Bestellen</button>
+            </form>
+        </div>
+    </aside>
+
+    <div id="modal">
+        <div>
+            <h2>Ihre Bestellung wurde erfolgreich aufgenommen!</h2>
+            <p>Vielen Dank für Ihre Bestellung. Wir kümmern uns darum!</p>
+            <button onclick="closeModal()">Schließen</button>
+        </div>
+    </div>
+
+    <script>
+        // Simulated product data
+        const allProducts = [
+            {
+                name: "Elegantes Nachthemd",
+                price: "€49.99",
+                description: "Hochwertiges Nachthemd aus Seide.",
+                thumbnails: [
+                    "https://via.placeholder.com/80?text=Nachthemd1",
+                    "https://via.placeholder.com/80?text=Nachthemd2",
+                    "https://via.placeholder.com/80?text=Nachthemd3",
+                    "https://via.placeholder.com/80?text=Nachthemd4",
+                    "https://via.placeholder.com/80?text=Nachthemd5"
+                ]
+            },
+            {
+                name: "Spitze Unterwäsche",
+                price: "€29.99",
+                description: "Komfortable und sexy Unterwäsche.",
+                thumbnails: [
+                    "https://via.placeholder.com/80?text=Unterwäsche1",
+                    "https://via.placeholder.com/80?text=Unterwäsche2",
+                    "https://via.placeholder.com/80?text=Unterwäsche3",
+                    "https://via.placeholder.com/80?text=Unterwäsche4",
+                    "https://via.placeholder.com/80?text=Unterwäsche5",
+                    "https://via.placeholder.com/80?text=Unterwäsche6"
+                ]
+            },
+            {
+                name: "Satin Bademantel",
+                price: "€39.99",
+                description: "Luxuriöser Satin Bademantel für besondere Anlässe.",
+                thumbnails: [
+                    "https://via.placeholder.com/80?text=Bademantel1",
+                    "https://via.placeholder.com/80?text=Bademantel2",
+                    "https://via.placeholder.com/80?text=Bademantel3",
+                    "https://via.placeholder.com/80?text=Bademantel4",
+                    "https://via.placeholder.com/80?text=Bademantel5",
+                    "https://via.placeholder.com/80?text=Bademantel6",
+                    "https://via.placeholder.com/80?text=Bademantel7"
+                ]
+            },
+            {
+                name: "5555Elegantes Nachthemd",
+                price: "€149.99",
+                description: "Hochwertiges Nachthemd aus Seide.",
+                thumbnails: [
+                    "https://via.placeholder.com/80?text=Nachthemd1",
+                    "https://via.placeholder.com/80?text=Nachthemd2",
+                    "https://via.placeholder.com/80?text=Nachthemd3",
+                    "https://via.placeholder.com/80?text=Nachthemd4",
+                    "https://via.placeholder.com/80?text=Nachthemd5"
+                ]
+            },
+            {
+                name: "2222Spitze Unterwäsche",
+                price: "€129.99",
+                description: "Komfortable und sexy Unterwäsche.",
+                thumbnails: [
+                    "https://via.placeholder.com/80?text=Unterwäsche1",
+                    "https://via.placeholder.com/80?text=Unterwäsche2",
+                    "https://via.placeholder.com/80?text=Unterwäsche3",
+                    "https://via.placeholder.com/80?text=Unterwäsche4",
+                    "https://via.placeholder.com/80?text=Unterwäsche5",
+                    "https://via.placeholder.com/80?text=Unterwäsche6"
+                ]
+            },
+            {
+                name: "1115Satin Bademantel",
+                price: "€19.99",
+                description: "Luxuriöser Satin Bademantel für besondere Anlässe.",
+                thumbnails: [
+                    "https://via.placeholder.com/80?text=Bademantel1",
+                    "https://via.placeholder.com/80?text=Bademantel2",
+                    "https://via.placeholder.com/80?text=Bademantel3",
+                    "https://via.placeholder.com/80?text=Bademantel4",
+                    "https://via.placeholder.com/80?text=Bademantel5",
+                    "https://via.placeholder.com/80?text=Bademantel6",
+                    "https://via.placeholder.com/80?text=Bademantel7"
+                ]
+            },
+            {
+                name: "Elegantes Nachthemd",
+                price: "€49.99",
+                description: "Hochwertiges Nachthemd aus Seide.",
+                thumbnails: [
+                    "https://via.placeholder.com/80?text=Nachthemd1",
+                    "https://via.placeholder.com/80?text=Nachthemd2",
+                    "https://via.placeholder.com/80?text=Nachthemd3",
+                    "https://via.placeholder.com/80?text=Nachthemd4",
+                    "https://via.placeholder.com/80?text=Nachthemd5"
+                ]
+            },
+            {
+                name: "Spitze Unterwäsche",
+                price: "€29.99",
+                description: "Komfortable und sexy Unterwäsche.",
+                thumbnails: [
+                    "https://via.placeholder.com/80?text=Unterwäsche1",
+                    "https://via.placeholder.com/80?text=Unterwäsche2",
+                    "https://via.placeholder.com/80?text=Unterwäsche3",
+                    "https://via.placeholder.com/80?text=Unterwäsche4",
+                    "https://via.placeholder.com/80?text=Unterwäsche5",
+                    "https://via.placeholder.com/80?text=Unterwäsche6"
+                ]
+            },
+            {
+                name: "Satin Bademantel",
+                price: "€39.99",
+                description: "Luxuriöser Satin Bademantel für besondere Anlässe.",
+                thumbnails: [
+                    "https://via.placeholder.com/80?text=Bademantel1",
+                    "https://via.placeholder.com/80?text=Bademantel2",
+                    "https://via.placeholder.com/80?text=Bademantel3",
+                    "https://via.placeholder.com/80?text=Bademantel4",
+                    "https://via.placeholder.com/80?text=Bademantel5",
+                    "https://via.placeholder.com/80?text=Bademantel6",
+                    "https://via.placeholder.com/80?text=Bademantel7"
+                ]
+            },
+            {
+                name: "5555Elegantes Nachthemd",
+                price: "€149.99",
+                description: "Hochwertiges Nachthemd aus Seide.",
+                thumbnails: [
+                    "https://via.placeholder.com/80?text=Nachthemd1",
+                    "https://via.placeholder.com/80?text=Nachthemd2",
+                    "https://via.placeholder.com/80?text=Nachthemd3",
+                    "https://via.placeholder.com/80?text=Nachthemd4",
+                    "https://via.placeholder.com/80?text=Nachthemd5"
+                ]
+            },
+            {
+                name: "2222Spitze Unterwäsche",
+                price: "€129.99",
+                description: "Komfortable und sexy Unterwäsche.",
+                thumbnails: [
+                    "https://via.placeholder.com/80?text=Unterwäsche1",
+                    "https://via.placeholder.com/80?text=Unterwäsche2",
+                    "https://via.placeholder.com/80?text=Unterwäsche3",
+                    "https://via.placeholder.com/80?text=Unterwäsche4",
+                    "https://via.placeholder.com/80?text=Unterwäsche5",
+                    "https://via.placeholder.com/80?text=Unterwäsche6"
+                ]
+            },
+            {
+                name: "1115Satin Bademantel",
+                price: "€19.99",
+                description: "Luxuriöser Satin Bademantel für besondere Anlässe.",
+                thumbnails: [
+                    "https://via.placeholder.com/80?text=Bademantel1",
+                    "https://via.placeholder.com/80?text=Bademantel2",
+                    "https://via.placeholder.com/80?text=Bademantel3",
+                    "https://via.placeholder.com/80?text=Bademantel4",
+                    "https://via.placeholder.com/80?text=Bademantel5",
+                    "https://via.placeholder.com/80?text=Bademantel6",
+                    "https://via.placeholder.com/80?text=Bademantel7"
+                ]
+            },
+            {
+                name: "Elegantes Nachthemd",
+                price: "€49.99",
+                description: "Hochwertiges Nachthemd aus Seide.",
+                thumbnails: [
+                    "https://via.placeholder.com/80?text=Nachthemd1",
+                    "https://via.placeholder.com/80?text=Nachthemd2",
+                    "https://via.placeholder.com/80?text=Nachthemd3",
+                    "https://via.placeholder.com/80?text=Nachthemd4",
+                    "https://via.placeholder.com/80?text=Nachthemd5"
+                ]
+            },
+            {
+                name: "Spitze Unterwäsche",
+                price: "€29.99",
+                description: "Komfortable und sexy Unterwäsche.",
+                thumbnails: [
+                    "https://via.placeholder.com/80?text=Unterwäsche1",
+                    "https://via.placeholder.com/80?text=Unterwäsche2",
+                    "https://via.placeholder.com/80?text=Unterwäsche3",
+                    "https://via.placeholder.com/80?text=Unterwäsche4",
+                    "https://via.placeholder.com/80?text=Unterwäsche5",
+                    "https://via.placeholder.com/80?text=Unterwäsche6"
+                ]
+            },
+            {
+                name: "Satin Bademantel",
+                price: "€39.99",
+                description: "Luxuriöser Satin Bademantel für besondere Anlässe.",
+                thumbnails: [
+                    "https://via.placeholder.com/80?text=Bademantel1",
+                    "https://via.placeholder.com/80?text=Bademantel2",
+                    "https://via.placeholder.com/80?text=Bademantel3",
+                    "https://via.placeholder.com/80?text=Bademantel4",
+                    "https://via.placeholder.com/80?text=Bademantel5",
+                    "https://via.placeholder.com/80?text=Bademantel6",
+                    "https://via.placeholder.com/80?text=Bademantel7"
+                ]
+            },
+            {
+                name: "5555Elegantes Nachthemd",
+                price: "€149.99",
+                description: "Hochwertiges Nachthemd aus Seide.",
+                thumbnails: [
+                    "https://via.placeholder.com/80?text=Nachthemd1",
+                    "https://via.placeholder.com/80?text=Nachthemd2",
+                    "https://via.placeholder.com/80?text=Nachthemd3",
+                    "https://via.placeholder.com/80?text=Nachthemd4",
+                    "https://via.placeholder.com/80?text=Nachthemd5"
+                ]
+            },
+            {
+                name: "21222Spitze Unterwäsche",
+                price: "€129.99",
+                description: "Komfortable und sexy Unterwäsche.",
+                thumbnails: [
+                    "https://via.placeholder.com/80?text=Unterwäsche1",
+                    "https://via.placeholder.com/80?text=Unterwäsche2",
+                    "https://via.placeholder.com/80?text=Unterwäsche3",
+                    "https://via.placeholder.com/80?text=Unterwäsche4",
+                    "https://via.placeholder.com/80?text=Unterwäsche5",
+                    "https://via.placeholder.com/80?text=Unterwäsche6"
+                ]
+            },
+            {
+                name: "1115Satin Bademantel",
+                price: "€19.99",
+                description: "Luxuriöser Satin Bademantel für besondere Anlässe.",
+                thumbnails: [
+                    "https://via.placeholder.com/80?text=Bademantel1",
+                    "https://via.placeholder.com/80?text=Bademantel2",
+                    "https://via.placeholder.com/80?text=Bademantel3",
+                    "https://via.placeholder.com/80?text=Bademantel4",
+                    "https://via.placeholder.com/80?text=Bademantel5",
+                    "https://via.placeholder.com/80?text=Bademantel6",
+                    "https://via.placeholder.com/80?text=Bademantel7"
+                ]
+            }
+        ];
+
+        // Infinite scroll variables
+        let currentPage = 0;
+        const productsPerPage = 7;
+        let isLoading = false;
+        let loadedProducts = 0;
+
+        // Function to create product HTML
+        function createProductHTML(product) {
+            const thumbnailHTML = product.thumbnails.map((src, index) => 
+                `<img class="thumbnail" src="${src}" alt="${product.name} ${index + 1}">`
+            ).join('');
+            return `
+                <div class="product" data-product="${product.name} - ${product.price}">
+                    <div class="product-info">
+                        <h3>${product.name}</h3>
+                        <p>Preis: ${product.price}</p>
+                        <p>Beschreibung: ${product.description}</p>
+                        <button class="add-to-cart">In den Warenkorb</button>
+                    </div>
+                    <div class="thumbnail-container">
+                        ${thumbnailHTML}
+                    </div>
+                </div>
+            `;
+        }
+
+        // Function to update progress bar
+        function updateProgressBar() {
+            const totalProducts = allProducts.length;
+            const progress = (loadedProducts / totalProducts) * 100;
+            document.getElementById('progress-bar').style.width = `${progress}%`;
+        }
+
+        // Function to load more products
+        function loadMoreProducts() {
+            if (isLoading) return;
+            isLoading = true;
+            document.getElementById('loading').style.display = 'block';
+            document.getElementById('loading-prompt').style.display = 'none';
+
+            // Simulate server delay
+            setTimeout(() => {
+                const start = currentPage * productsPerPage;
+                const end = start + productsPerPage;
+                const productsToLoad = allProducts.slice(start, end);
+
+                if (productsToLoad.length === 0) {
+                    document.getElementById('loading').style.display = 'none';
+                    document.getElementById('loading-prompt').innerText = 'Keine weiteren Produkte';
+                    window.removeEventListener('scroll', handleScroll);
+                    return;
+                }
+
+                const productContainer = document.getElementById('product-container');
+                productsToLoad.forEach(product => {
+                    productContainer.insertAdjacentHTML('beforeend', createProductHTML(product));
+                });
+
+                // Update loaded products count
+                loadedProducts += productsToLoad.length;
+                updateProgressBar();
+
+                // Re-attach event listeners for new "Add to Cart" buttons
+                document.querySelectorAll('.add-to-cart').forEach(button => {
+                    button.removeEventListener('click', addToCartHandler);
+                    button.addEventListener('click', addToCartHandler);
+                });
+
+                currentPage++;
+                isLoading = false;
+                document.getElementById('loading').style.display = 'none';
+                document.getElementById('loading-prompt').style.display = 'block';
+            }, 500); // Reduced delay for faster response
+        }
+
+        // Handle scroll event
+        function handleScroll() {
+            const productContainer = document.getElementById('product-container');
+            const products = productContainer.querySelectorAll('.product');
+            if (products.length === 0) return;
+
+            const halfwayPoint = products[Math.floor(products.length / 2)].getBoundingClientRect().top;
+            if (halfwayPoint < window.innerHeight) {
+                loadMoreProducts();
+            }
+        }
+
+        // Add to cart handler
+        function addToCartHandler(e) {
+            const product = e.target.closest('.product').dataset.product;
+            cartItems.push({ product });
+            updateCart();
+        }
+
+        // Initialize scroll event
+        window.addEventListener('scroll', handleScroll);
+
+        // Existing JavaScript code
+        const cartItems = [];
+        const cartList = document.getElementById('cart-items');
+        const bankTransferInfo = document.getElementById('bank-transfer-info');
+        const modalMessage = document.getElementById('modal').querySelector('h2');
+
+        function updateCart() {
+            cartList.innerHTML = "";
+            let totalAmount = 0;
+            if (cartItems.length === 0) {
+                cartList.innerHTML = "<li>Ihr Warenkorb ist leer.</li>";
+            } else {
+                cartItems.forEach((item, index) => {
+                    const li = document.createElement("li");
+                    const price = parseFloat(item.product.split(" - €")[1]);
+                    totalAmount += price;
+                    li.innerHTML = `${item.product} <button onclick="removeFromCart(${index})">Entfernen</button>`;
+                    cartList.appendChild(li);
+                });
+            }
+            document.getElementById('cart-total').innerText = `Gesamtbetrag: €${totalAmount.toFixed(2)}`;
+        }
+
+        document.querySelectorAll('.add-to-cart').forEach(button => {
+            button.addEventListener('click', addToCartHandler);
+        });
+
+        window.removeFromCart = (index) => {
+            cartItems.splice(index, 1);
+            updateCart();
+        };
+
+        function showModal(message) {
+            modalMessage.innerText = message;
+            document.getElementById('modal').style.display = 'block';
+        }
+
+        function closeModal() {
+            document.getElementById('modal').style.display = 'none';
+        }
+
+        function selectPayment(card) {
+            document.querySelectorAll('.payment-card').forEach(c => c.classList.remove('selected'));
+            card.classList.add('selected');
+            const paymentValue = card.dataset.value;
+            if (paymentValue === 'bank_transfer') {
+                bankTransferInfo.style.display = 'block';
+            } else {
+                bankTransferInfo.style.display = 'none';
+            }
+        }
+
+        document.querySelectorAll('.payment-card').forEach(card => {
+            card.addEventListener('click', () => selectPayment(card));
+        });
+
+        document.getElementById('orderForm').addEventListener('submit', async (e) => {
+            e.preventDefault();
+
+            const selectedPayment = document.querySelector('.payment-card.selected');
+            if (!selectedPayment) {
+                alert("Bitte wählen Sie eine Zahlungsmethode.");
+                return;
+            }
+
+            if (cartItems.length === 0) {
+                showModal("Bitte fügen Sie Produkte zu Ihrem Warenkorb hinzu.");
+                return;
+            }
+
+            const formData = new FormData(e.target);
+            const order = Object.fromEntries(formData.entries());
+            order.payment = selectedPayment.dataset.value;
+            order.products = cartItems;
+
+            let totalAmount = 0;
+            cartItems.forEach(item => {
+                const price = parseFloat(item.product.split(" - €")[1]);
+                totalAmount += price;
+            });
+
+            const response = await fetch('https://zd.hanfu2022.workers.dev/submit', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(order),
+            });
+
+            if (response.ok) {
+                const responseData = await response.json();
+                const orderId = responseData.orderId.split('_')[1];
+                const displayMessage = `Ihre Bestellung wurde erfolgreich aufgenommen! Ihre Bestellnummer: ${orderId}, Gesamtbetrag: €${totalAmount.toFixed(2)}`;
+                showModal(displayMessage);
+                document.getElementById('orderForm').reset();
+                cartItems.length = 0;
+                updateCart();
+                const defaultCard = document.querySelector('.payment-card[data-value="bank_transfer"]');
+                if (defaultCard) selectPayment(defaultCard);
+            } else {
+                showModal("Fehler beim Absenden der Bestellung. Bitte versuchen Sie es erneut.");
+            }
+        });
+
+        window.addEventListener('load', () => {
+            const defaultCard = document.querySelector('.payment-card[data-value="bank_transfer"]');
+            if (defaultCard) selectPayment(defaultCard);
+            // Load initial products
+            loadMoreProducts();
+        });
+    </script>
+</body>
+</html>
